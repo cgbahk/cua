@@ -1,0 +1,4 @@
+hydra-core>=1.2
+pygithub
+pandas
+tabulate
