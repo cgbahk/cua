@@ -20,7 +20,7 @@ def main(cfg):
 
         return False
 
-    if cfg.label_to_exclude:
+    if "label_to_exclude" in cfg:
         issues = [issue for issue in issues if not has_label(issue, cfg.label_to_exclude)]
 
     picked_issues = random.choices(list(issues), k=cfg.issue_pick_count)
