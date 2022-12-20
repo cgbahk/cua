@@ -1,6 +1,7 @@
 from pathlib import Path
 import random
 from abc import ABC, abstractmethod
+import re
 
 import hydra
 from github import Github
@@ -91,6 +92,70 @@ class RevisitRandomComment(Revisit, key="random_comment"):
                     "head": remove_newline(comment.body[:option.head_char_count]),
                 }
             )
+        df = pd.DataFrame.from_records(records)
+        print(self.summary(option))
+        print(df.to_markdown(index=False))
+
+
+class RevisitRandomSearch(Revisit, key="random_search"):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def summary(self, option: omegaconf.DictConfig) -> str:
+        return f"Random {option.count} items from repo {option.repo} with keyword '{option.keyword}'"
+
+    def run(self, option: omegaconf.DictConfig):
+        filtered_issues = list(
+            self._session.search_issues(query=f"{option.keyword} repo:{option.repo}")
+        )
+
+        picked_issues = random.choices(filtered_issues, k=option.count)
+
+        def keyword_in_title_or_body(*, keyword: str, issue):
+            assert issue.title
+
+            if re.search(keyword, issue.title, re.IGNORECASE):
+                return True
+
+            if not issue.body:
+                return False
+
+            if re.search(keyword, issue.body, re.IGNORECASE):
+                return True
+
+            return False
+
+        records = []
+        for issue in picked_issues:
+            if keyword_in_title_or_body(keyword=option.keyword, issue=issue):
+                records.append({
+                    "url": issue.html_url,
+                    "title_or_head": issue.title,
+                })
+            else:
+                comment_with_keyword = None
+                keyword_begin_idx = -1
+                for comment in issue.get_comments():
+                    result = re.search(option.keyword, comment.body, re.IGNORECASE)
+                    if result:
+                        comment_with_keyword = comment
+                        keyword_begin_idx = result.start()
+                        break
+
+                assert comment_with_keyword
+                assert keyword_begin_idx >= 0
+
+                head = remove_newline(
+                    comment_with_keyword.
+                    body[keyword_begin_idx:keyword_begin_idx + option.head_char_count]
+                )
+
+                records.append({
+                    "url": comment_with_keyword.html_url,
+                    "title_or_head": head,
+                })
+
         df = pd.DataFrame.from_records(records)
         print(self.summary(option))
         print(df.to_markdown(index=False))
