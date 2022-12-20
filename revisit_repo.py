@@ -60,6 +60,7 @@ class RevisitRandomIssue(Revisit, key="random_issue"):
                 "title": issue.title,
             })
         df = pd.DataFrame.from_records(records)
+        print(self.summary(option))
         print(df.to_markdown(index=False))
 
 
