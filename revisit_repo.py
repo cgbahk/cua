@@ -16,6 +16,10 @@ def has_label(issue, label_name: str):
     return False
 
 
+def remove_newline(arg: str):
+    return arg.replace("\r", "").replace("\n", " ")
+
+
 class Revisit(ABC):
     registry = {}
 
@@ -84,7 +88,7 @@ class RevisitRandomComment(Revisit, key="random_comment"):
             records.append(
                 {
                     "url": comment.html_url,
-                    "head": comment.body[:option.head_char_count].replace("\n", " "),
+                    "head": remove_newline(comment.body[:option.head_char_count]),
                 }
             )
         df = pd.DataFrame.from_records(records)
