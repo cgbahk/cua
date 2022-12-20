@@ -26,6 +26,11 @@ class Revisit(ABC):
         super().__init_subclass__(**kwargs)
         cls.registry[key] = cls
 
+    # TODO May better to be classmethod
+    @abstractmethod
+    def summary(self, option: omegaconf.DictConfig) -> str:
+        raise NotImplementedError
+
     @abstractmethod
     def run(self, option: omegaconf.DictConfig):
         raise NotImplementedError
@@ -35,6 +40,9 @@ class RevisitRandomIssue(Revisit, key="random_issue"):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def summary(self, option: omegaconf.DictConfig) -> str:
+        return f"Random {option.count} issues from repo {option.repo}"
 
     def run(self, option: omegaconf.DictConfig):
         repo = self._session.get_repo(option.repo)
