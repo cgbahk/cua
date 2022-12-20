@@ -51,7 +51,7 @@ class RevisitRandomIssue(Revisit, key="random_issue"):
         if "label_to_exclude" in option:
             issues = [issue for issue in issues if not has_label(issue, option.label_to_exclude)]
 
-        picked_issues = random.choices(list(issues), k=option.count)
+        picked_issues = random.choices(issues, k=option.count)
 
         records = []
         for issue in picked_issues:
@@ -77,7 +77,7 @@ class RevisitRandomComment(Revisit, key="random_comment"):
         issue = repo.get_issue(option.issue_number)
         comments = list(issue.get_comments())
 
-        picked_comments = random.choices(list(comments), k=option.count)
+        picked_comments = random.choices(comments, k=option.count)
 
         records = []
         for comment in picked_comments:
