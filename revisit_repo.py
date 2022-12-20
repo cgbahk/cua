@@ -64,6 +64,34 @@ class RevisitRandomIssue(Revisit, key="random_issue"):
         print(df.to_markdown(index=False))
 
 
+class RevisitRandomComment(Revisit, key="random_comment"):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def summary(self, option: omegaconf.DictConfig) -> str:
+        return f"Random {option.count} comments from issue {option.repo}#{option.issue_number}"
+
+    def run(self, option: omegaconf.DictConfig):
+        repo = self._session.get_repo(option.repo)
+        issue = repo.get_issue(option.issue_number)
+        comments = list(issue.get_comments())
+
+        picked_comments = random.choices(list(comments), k=option.count)
+
+        records = []
+        for comment in picked_comments:
+            records.append(
+                {
+                    "url": comment.html_url,
+                    "head": comment.body[:option.head_char_count].replace("\n", " "),
+                }
+            )
+        df = pd.DataFrame.from_records(records)
+        print(self.summary(option))
+        print(df.to_markdown(index=False))
+
+
 @hydra.main(version_base="1.2", config_path=".", config_name=Path(__file__).stem)
 def main(cfg):
     g = Github(**cfg.session_info)
