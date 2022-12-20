@@ -51,7 +51,7 @@ class RevisitRandomIssue(Revisit, key="random_issue"):
         if "label_to_exclude" in option:
             issues = [issue for issue in issues if not has_label(issue, option.label_to_exclude)]
 
-        picked_issues = random.choices(list(issues), k=option.issue_pick_count)
+        picked_issues = random.choices(list(issues), k=option.count)
 
         records = []
         for issue in picked_issues:
